@@ -13,6 +13,8 @@ using log4net;
 
 namespace SMTesting
 {
+    // A comment
+
     /// <summary>
     /// An Occupancy State machine handles not occupied, occupied, asleep
     /// </summary>
