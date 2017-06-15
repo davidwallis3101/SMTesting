@@ -1,0 +1,60 @@
+﻿Angular.js
+SignalR
+react rxjs
+
+MongoVue - admin?
+
+Tableau for visualising MongoDB
+
+Fake SSID's for people to connect to grab mac addresses
+
+Weather from Noah
+
+Weather Diff from Yesterday
+
+
+Light
+    Type Of Room
+    How Many Visitors
+    Party
+    Sensors
+    Schedule
+    Someone Headed This Way
+    Just Turned On/Off
+    Recent History
+    Long Term Memory
+    Connected Rooms
+    Time Of Day
+    Sunlight
+
+Graph<HouseObject, Relation> graph;
+graph.AddStatement(kitchen, type, Room);
+graph.AddStatement(kitchen, openTo, diningRoom);
+
+Asana - Shopping
+
+
+Exponential Back off
+
+    var exponentialBackoff = new ExponentialBackOff(1000, 2.0, 600000);
+
+    while (!this.cancellationToken.IsCancellationRequested)
+    {
+        var state = this.Connect();
+        if (state == null)
+        {
+            exponentialBackoff.Delay(cancellationToken).Wait(cancellationToken);
+            continue;
+        }
+        exponentialBackoff.Reset();
+        // use connection until it fails
+    }
+
+    infinite loop defense.. 
+
+    int massiveLimit = 10000;
+    while (someCondition)
+        if (massiveLimit-- == 0)
+        throw Exception("Unbounded Loop);
+
+
