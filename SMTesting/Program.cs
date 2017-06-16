@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 using log4net;
 using log4net.Config;
 using System.Reactive;
-using System.Timers;
+using System.Reactive.Linq;
+using System.Threading;
 using Abodit.StateMachine;
 
 namespace SMTesting
@@ -18,13 +19,19 @@ namespace SMTesting
 
         static void Main(string[] args)
         {
+          
+          
             BasicConfigurator.Configure();
             var stateMachine = new OccupancyStateMachine();
             var house = Home();
-            
+
+
+            Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(t =>{ stateMachine.Tick(DateTime.UtcNow, house); });
+
             stateMachine.StateChanges += new StateMachine<OccupancyStateMachine, Event, BuildingArea>.ChangesStateDelegate(testStateChange.demoStateMachine_StateChanges);
 
             var obsvr = Observer.Create<OccupancyStateMachine.State>(s=> { Console.WriteLine("Observer: {0}", s.ToString()); });
+
             stateMachine.Watch.Subscribe(obsvr);
 
 
@@ -42,7 +49,12 @@ namespace SMTesting
 
             var hme = house.Children.Find(b => b.Name == "House");
             stateMachine.DoorOpens(office);
-            stateMachine.DoorOpens(hme); 
+            System.Threading.Thread.Sleep(1000);
+            stateMachine.DoorCloses(office);
+
+
+            Console.WriteLine("Next timed event at: {0}", stateMachine.NextTimedEventAt);
+            // stateMachine.DoorOpens(hme); 
 
 
             //var test = new StringWithHistory {Current = "initial value"};
@@ -50,7 +62,7 @@ namespace SMTesting
             //test.Current = "new Value";
             //Console.WriteLine("test value - current: '{0}' prev: '{1}'", test.Current, test.Previous);
 
-            stateMachine.DoorCloses(office);
+            // stateMachine.DoorCloses(office);
 
             //    stateMachine.DoorOpens(garden);
 
@@ -60,11 +72,11 @@ namespace SMTesting
             //stateMachine.Tick(DateTime.UtcNow.AddDays(1), garden);
 
             Console.WriteLine("Sleeping");
-            System.Threading.Thread.Sleep(15000);
+            System.Threading.Thread.Sleep(50000);
+            stateMachine.DoorOpens(office);
 
-            
 
-        Console.WriteLine("Press a key");
+            Console.WriteLine("Press a key");
         Console.ReadKey();
     }
 

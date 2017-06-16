@@ -50,7 +50,7 @@ namespace SMTesting
 
         public void AddToLog(string msg)
         {
-            Console.Write(msg);
+            Console.WriteLine("{0} {1}", DateTime.Now, msg);
         }
         
         public bool Enclosed { get; set; }

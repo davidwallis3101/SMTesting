@@ -19,6 +19,13 @@ namespace SMTesting
     [Serializable]
     public class OccupancyStateMachine : StateMachine<OccupancyStateMachine, Event, BuildingArea>
     {
+
+        // Set initial state
+        public OccupancyStateMachine() : base(NotOccupied)
+        {
+        }
+
+
         private static readonly ILog log = LogManager.GetLogger(typeof(OccupancyStateMachine));
 
         [NonSerialized] private readonly Subject<State> watch = new Subject<State>();
@@ -30,7 +37,7 @@ namespace SMTesting
 
         public override void OnStateChanging(StateMachine<OccupancyStateMachine, Event, BuildingArea>.State newState, BuildingArea context)
         {
-            Trace.WriteLine("Entered state " + newState);
+            Console.WriteLine("'{0}' Entered state {1}",context.Name, newState);
             watch.OnNext(newState);
         }
 
@@ -53,8 +60,8 @@ namespace SMTesting
             (m, e, s, c) =>
             {
                 m.CancelScheduledEvent(eTick); // Stop the clock
-                //c.IsTimerRunning.Current = false;
-                //c.IsHeavilyOccupied.Current = false;
+                // c.IsTimerRunning.Current = false;
+                // c.IsHeavilyOccupied.Current = false;
                 m.After(new TimeSpan(0, 30, 0), eHalfHourPostOccupancy);
                 m.After(new TimeSpan(0, 60, 0), eOneHourPostOccupancy);
             },
@@ -76,7 +83,7 @@ namespace SMTesting
             (m, e, s, c) =>
             {
                 m.CancelScheduledEvent(eTimeout);
-                //m.After(c.OccupancyTimeout, eTimeout);                // start a new timeout
+                m.After(c.OccupancyTimeout, eTimeout);                // start a new timeout
                 //c.IsTimerRunning.Current = true;
 
                 // Add a timer that runs while we are occupied
@@ -91,7 +98,7 @@ namespace SMTesting
             (m, e, s, c) => { });
 
         /// <summary>
-        /// Room is occupied and all doors into it are enclosed
+        /// Room is occupied and all doors into it are closed
         /// </summary>
         public static readonly State OccupiedAndEnclosed = AddState("Occupied and enclosed",
             (m, e, s, c) => { },
@@ -101,8 +108,7 @@ namespace SMTesting
         private static readonly Event eStart = new Event("Starts");
         private static readonly Event eUserActivity = new Event("User activity");
 
-        private static readonly Event eSensorActivity = new Event("Sensor activity")
-            ; // maintains occupancy, does not set it
+        private static readonly Event eSensorActivity = new Event("Sensor activity"); // maintains occupancy, does not set it
 
         private static readonly Event eTick = new Event("Tick"); // 10s tick while occupied
 
@@ -114,6 +120,9 @@ namespace SMTesting
 
         private static readonly Event eTimeoutHalfHourPostOccupancy = new Event("Timeout Half Hour");
         private static readonly Event eTimeoutOneHourPostOccupancy = new Event("Timeout One Hour");
+
+    
+        //private static Event eScheduledCheck = new Event("Scheduled Check"); // From demo code
 
         private static readonly Event eAllChildrenNotOccupied = new Event("No child occupied");
         private static readonly Event eAtLeastOneChildOccupied = new Event("At least one child occupied");
@@ -135,15 +144,30 @@ namespace SMTesting
         static OccupancyStateMachine()
         {
 
-
-
-            // m = machine
-            // s = state
-            // e = event
+            // m = the state machine
+            // s = the state
+            // e = the event
             // c = context (BuildingArea)
 
+            /* 
+             * States can execute code when they are entered or when they are left
+             * In this case we start a timer to annoy the user until they confirm their email
+                 m.Every(new TimeSpan(hours: 10, minutes: 0, seconds: 0), eScheduledCheck);
+ 
 
-        // Note: This is a hierarchical state machine so NotOccupied includes Asleep
+            Trace.WriteLine("You can also set a reminder to happen at a specific time, or after a given interval just once");
+            m.At(new DateTime(DateTime.Now.Year + 1, 1, 1), eScheduledCheck);
+            m.After(new TimeSpan(hours: 24, minutes: 0, seconds: 0), eScheduledCheck);
+          
+            All necessary timing information is serialized with the state machine.
+            
+            The serialized state machine also exposes a property showing when it next needs to be woken up.
+            External code will need to call the Tick(utc) method at that time to trigger the next temporal event
+
+             */
+
+
+            // Note: This is a hierarchical state machine so NotOccupied includes Asleep
             NotOccupied
                 .When(eAtLeastOneChildOccupied, Occupied)
                 .When(eDoorOpens, Occupied)
@@ -218,12 +242,11 @@ namespace SMTesting
                     // c.IsTimerRunning.Current = false;
                     // No action if we have occupied children
                     // if (c.HasOccupiedChildren.Current)
-                    c.AddToLog("No action if we have occupied children");
+                    c.AddToLog("eTimeout");
                     if (c.HasOccupiedChildren)
                         return s;
 
                     // No timeout if occupied and enclosed ???
-                    c.AddToLog("No timeout if occupied and enclosed ???");
                     if (s == OccupiedAndEnclosed)
                     {
                         c.AddToLog("Kept occupied because enclosed");
@@ -264,9 +287,7 @@ namespace SMTesting
     */
 
 
-        public OccupancyStateMachine() : base(NotOccupied)
-        {
-        }
+
 
         public override void Start()
         {
